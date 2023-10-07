@@ -17,15 +17,14 @@ namespace ImageToASCII
                 return;
             }
 
-            Bitmap rawImage = new Bitmap(args[0]);
+            Bitmap image = new Bitmap(args[0]);
 
             Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
-            Bitmap resizedImage = ResizeImage(rawImage, CalculateImageNewSize(rawImage));
-            rawImage.Dispose();
+            image = ResizeImage(image, CalculateImageNewSize(image));
             
-            DisplayImageAsASCII(resizedImage);
-            
-            resizedImage.Dispose();
+            DisplayImageAsASCII(image);
+
+            image.Dispose();
 
             Console.ReadLine();
         }
@@ -48,7 +47,7 @@ namespace ImageToASCII
             }
             return new Size(newX, newY);
         }
-        public static Bitmap ResizeImage(Image image, Size size)
+        public static Bitmap ResizeImage(Bitmap image, Size size)
         {
             var destRect = new Rectangle(0, 0, size.Width, size.Height);
             var destImage = new Bitmap(size.Width, size.Height);
