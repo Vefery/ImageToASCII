@@ -21,7 +21,7 @@ namespace ImageToASCII
 
             Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
             image = ResizeImage(image, CalculateImageNewSize(image));
-            
+
             DisplayImageAsASCII(image);
 
             image.Dispose();
@@ -33,17 +33,17 @@ namespace ImageToASCII
             int newX = image.Width;
             int newY = image.Height;
             float factor;
-            if (newX > Console.WindowWidth/2)
+            if (newX > Console.WindowWidth)
             {
-                factor = (float)Console.WindowWidth / (2*newX);
+                factor = (float)Console.WindowWidth / newX;
                 newX = (int)(newX * factor);
                 newY = (int)(newY * factor);
             }
-            if (newY > Console.WindowHeight)
+            if (newY/2 > Console.WindowHeight)
             {
-                factor = (float)Console.WindowHeight / newY;
+                factor = (float)Console.WindowHeight / (newY * 0.5f);
                 newX = (int)(newX * factor);
-                newY = (int)(newY * factor);
+                newY = (int)(newY * 0.5f * factor);
             }
             return new Size(newX, newY);
         }
@@ -78,8 +78,9 @@ namespace ImageToASCII
                 for (int x = 0; x < image.Width; x++)
                 {
                     Color pixelColor = image.GetPixel(x, y);
-                    int temp = (int)Math.Round(pixelColor.GetBrightness() * 9);
-                    Console.Write(string.Concat(brightnessTable[temp], brightnessTable[temp]));
+                    int brightness = (int)(pixelColor.R * 0.299f + pixelColor.G * 0.587f + pixelColor.B * 0.114f) / 3;
+                    int temp = (int)Math.Round(((float)(brightnessTable.Length - 1) / 85) * brightness);
+                    Console.Write(brightnessTable[temp]);
                 }
                 Console.Write("\n");
             }
