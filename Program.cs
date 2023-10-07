@@ -7,65 +7,24 @@ namespace ImageToASCII
 {
     internal class Program
     {
+        readonly static string brightnessTable = " .:-=+*#%@";
         static void Main(string[] args)
         {
-            string brightnessTableSimple = " .:-=+*#%@";
-            string brightnessTableComplex = " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
-            bool isComplexTableUsed;
-
             if (args.Length == 0)
             {
-                Console.WriteLine("No file given");
+                Console.WriteLine("No file given. Drag and drop image on .exe file");
                 Console.ReadLine();
                 return;
             }
 
             Bitmap rawImage = new Bitmap(args[0]);
 
-            Console.WriteLine("Use simple or complex brightness table? (s/c)");
-            string input = Console.ReadLine();
-            if (input == "s")
-                isComplexTableUsed = false;
-            else if (input == "c")
-                isComplexTableUsed = true;
-            else
-            {
-                Console.WriteLine("Invalid input");
-                Console.ReadLine();
-                return;
-            }
-            Console.Clear();
-
             Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
             Bitmap resizedImage = ResizeImage(rawImage, CalculateImageNewSize(rawImage));
             rawImage.Dispose();
-
-            for (int y = 0; y < resizedImage.Height; y++)
-            {
-                for  (int x = 0; x < resizedImage.Width; x++)
-                {
-                    Color pixelColor = resizedImage.GetPixel(x, y);
-                    //int pixelAverageValue = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
-                    int pixelAverageValue = (int)Math.Round(pixelColor.R * 0.299f + pixelColor.G * 0.587f + pixelColor.B * 0.114f);
-                    resizedImage.SetPixel(x, y, Color.FromArgb(pixelAverageValue, pixelAverageValue, pixelAverageValue));
-                }
-            }
-            for (int y = 0; y < resizedImage.Height; y++) 
-            {
-                for (int x = 0; x < resizedImage.Width; x++)  {
-                    Color pixelColor = resizedImage.GetPixel(x, y);
-                    if (isComplexTableUsed)
-                    {
-                        int temp = (int)Math.Round(pixelColor.GetBrightness() * 69);
-                        Console.Write(string.Concat(brightnessTableComplex[temp], brightnessTableComplex[temp]));
-                    } else
-                    {
-                        int temp = (int)Math.Round(pixelColor.GetBrightness() * 9);
-                        Console.Write(string.Concat(brightnessTableSimple[temp], brightnessTableSimple[temp]));
-                    }
-                }
-                Console.Write("\n");
-            }
+            
+            DisplayImageAsASCII(resizedImage);
+            
             resizedImage.Dispose();
 
             Console.ReadLine();
@@ -112,6 +71,19 @@ namespace ImageToASCII
             }
 
             return destImage;
+        }
+        public static void DisplayImageAsASCII(Bitmap image)
+        {
+            for (int y = 0; y < image.Height; y++)
+            {
+                for (int x = 0; x < image.Width; x++)
+                {
+                    Color pixelColor = image.GetPixel(x, y);
+                    int temp = (int)Math.Round(pixelColor.GetBrightness() * 9);
+                    Console.Write(string.Concat(brightnessTable[temp], brightnessTable[temp]));
+                }
+                Console.Write("\n");
+            }
         }
     }
 }
