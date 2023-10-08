@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.IO;
 
 namespace ImageToASCII
 {
@@ -20,15 +21,38 @@ namespace ImageToASCII
             Bitmap image = new Bitmap(args[0]);
 
             Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
-            image = ResizeImage(image, CalculateImageNewSize(image));
+            Size newSize = CalculateImageNewSize(image);
 
-            DisplayImageAsASCII(image);
-
+            FrameDimension dimension = new FrameDimension(image.FrameDimensionsList[0]);
+            int framesCount = image.GetFrameCount(dimension);
+            Bitmap[] sequence = BuildImageSequence(image, newSize, dimension, framesCount);
             image.Dispose();
 
+            for (int i = 0; i < framesCount; i++)
+            {
+                DisplayImageAsASCII(sequence[i]);
+                System.Threading.Thread.Sleep(60);
+            }
+
+            foreach (var s in sequence)
+            {
+                s.Dispose();
+            }
             Console.ReadLine();
         }
-        public static Size CalculateImageNewSize(Bitmap image)
+
+        private static Bitmap[] BuildImageSequence(Bitmap image, Size newSize, FrameDimension dimension, int framesCount)
+        {
+            Bitmap[] sequence = new Bitmap[framesCount];
+            for (int i = 0; i < framesCount; i++)
+            {
+                sequence[i] = new Bitmap(image, newSize);
+                image.SelectActiveFrame(dimension, i);
+            }
+            return sequence;
+        }
+
+        public static Size CalculateImageNewSize(Image image)
         {
             int newX = image.Width;
             int newY = image.Height;
@@ -47,7 +71,7 @@ namespace ImageToASCII
             }
             return new Size(newX, newY);
         }
-        public static Bitmap ResizeImage(Bitmap image, Size size)
+        public static Bitmap ResizeImage(Image image, Size size)
         {
             var destRect = new Rectangle(0, 0, size.Width, size.Height);
             var destImage = new Bitmap(size.Width, size.Height);
@@ -73,16 +97,21 @@ namespace ImageToASCII
         }
         public static void DisplayImageAsASCII(Bitmap image)
         {
-            for (int y = 0; y < image.Height; y++)
+            Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop);
+            using (var stream = new StreamWriter(Console.OpenStandardOutput()))
             {
-                for (int x = 0; x < image.Width; x++)
+                for (int y = 0; y < image.Height; y++)
                 {
-                    Color pixelColor = image.GetPixel(x, y);
-                    int brightness = (int)(pixelColor.R * 0.299f + pixelColor.G * 0.587f + pixelColor.B * 0.114f) / 3;
-                    int temp = (int)Math.Round(((float)(brightnessTable.Length - 1) / 85) * brightness);
-                    Console.Write(brightnessTable[temp]);
+                    for (int x = 0; x < image.Width; x++)
+                    {
+                        Color pixelColor = image.GetPixel(x, y);
+                        int brightness = (int)(pixelColor.R * 0.299f + pixelColor.G * 0.587f + pixelColor.B * 0.114f) / 3;
+                        int temp = (int)Math.Round(((float)(brightnessTable.Length - 1) / 85) * brightness);
+                        //if (buffer[])
+                        stream.Write(brightnessTable[temp]);
+                    }
+                    stream.Write("\n");
                 }
-                Console.Write("\n");
             }
         }
     }
